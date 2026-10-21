@@ -57,6 +57,7 @@ test('показывает телефон под маской, статус, с�
   })
   expect(progress.getAttribute('aria-valuenow')).toBe('7')
   expect(progress.getAttribute('aria-valuemax')).toBe('10')
+  expect(progress.getAttribute('aria-valuetext')).toBe('7 из 10')
 })
 
 test('показывает все бонусные карты с балансом, и ни одна из них не кнопка', async () => {
@@ -79,7 +80,7 @@ test('«Записаться на процедуру» даёт отклик и 
   )
 
   expect(platform.tap).toHaveBeenCalledTimes(1)
-  expect(platform.openChat).toHaveBeenCalledWith('book')
+  expect(platform.openChat).toHaveBeenCalledExactlyOnceWith('book')
 })
 
 test('«Связаться с отделом заботы» открывает чат по теме заботы', async () => {
@@ -91,7 +92,8 @@ test('«Связаться с отделом заботы» открывает �
     await screen.findByRole('button', { name: 'Связаться с отделом заботы' }),
   )
 
-  expect(platform.openChat).toHaveBeenCalledWith('care')
+  expect(platform.tap).toHaveBeenCalledTimes(1)
+  expect(platform.openChat).toHaveBeenCalledExactlyOnceWith('care')
 })
 
 test('«Онлайн-запись» открывает лист внутри приложения, и он закрывается кнопкой и Escape', async () => {
@@ -121,6 +123,35 @@ test('«Онлайн-запись» открывает лист внутри п�
   await user.keyboard('{Escape}')
 
   expect(screen.queryByRole('dialog')).toBeNull()
+  expect(platform.tap).toHaveBeenCalledTimes(2)
+})
+
+test('касание подложки закрывает лист', async () => {
+  const user = userEvent.setup()
+  const { container } = render(<App platform={fakePlatform()} />)
+  await user.click(await screen.findByRole('button', { name: 'Онлайн-запись' }))
+  screen.getByRole('dialog')
+
+  // У подложки нет роли: это поверхность для касания, а не элемент
+  // управления, поэтому её ищем по классу.
+  await user.click(container.querySelector('.sheet-backdrop')!)
+
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('пока лист открыт, экран под ним недоступен, а текст листа описывает диалог', async () => {
+  const user = userEvent.setup()
+  render(<App platform={fakePlatform()} />)
+  await user.click(await screen.findByRole('button', { name: 'Онлайн-запись' }))
+
+  const sheet = screen.getByRole('dialog', {
+    description: 'Здесь откроется онлайн-запись YCLIENTS вашего филиала.',
+  })
+  expect(screen.getByRole('main').hasAttribute('inert')).toBe(true)
+
+  await user.click(within(sheet).getByRole('button', { name: 'Понятно' }))
+
+  expect(screen.getByRole('main').hasAttribute('inert')).toBe(false)
 })
 
 test('сообщает Telegram о готовности один раз, когда экран показан', async () => {

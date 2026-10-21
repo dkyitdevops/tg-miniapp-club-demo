@@ -18,6 +18,7 @@ function ProgressRing({ next }: { next: NextStatus }) {
       aria-valuemin={0}
       aria-valuenow={next.visits_done}
       aria-valuemax={next.visits_required}
+      aria-valuetext={`${next.visits_done} из ${next.visits_required}`}
     >
       <circle className="ring-track" cx="40" cy="40" r={RADIUS} />
       <circle

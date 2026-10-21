@@ -27,3 +27,17 @@ test('фон первой отрисовки в index.html совпадает с
   expect(firstPaint).toBe(token)
   expect(themeColor).toBe(token)
 })
+
+test('каждый шрифт из tokens.css предзагружается в index.html', () => {
+  const fonts = [
+    ...tokensCss.matchAll(/url\("\.\.\/assets\/fonts\/([^"]+)"\)/g),
+  ].map(([, file]) => file)
+  const preloaded = [
+    ...indexHtml.matchAll(
+      /<link rel="preload" href="\/src\/assets\/fonts\/([^"]+)" as="font" type="font\/woff2" crossorigin \/>/g,
+    ),
+  ].map(([, file]) => file)
+
+  expect(fonts.length).toBeGreaterThan(0)
+  expect(new Set(preloaded)).toEqual(new Set(fonts))
+})
