@@ -1,4 +1,4 @@
-// Форма ответа API кабинета. Имена полей как в JSON, поэтому snake_case.
+// Имена полей повторяют JSON ответа API, поэтому snake_case.
 export interface ProfileResponse {
   client: Client
   cards: BonusCard[]

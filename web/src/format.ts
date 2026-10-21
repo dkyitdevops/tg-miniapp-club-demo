@@ -45,6 +45,6 @@ export function formatBalance(
 
 export function nextStatusLine(next: NextStatus): string {
   const left = next.visits_required - next.visits_done
-  const visits = plural(left, 'визит', 'визита', 'визитов')
-  return `${next.name} через ${left}\u00a0${visits}`
+  const unitLabel = plural(left, 'визит', 'визита', 'визитов')
+  return `${next.name} через ${left}\u00a0${unitLabel}`
 }
