@@ -1,0 +1,21 @@
+{
+  "client": {
+    "first_name": "Анна",
+    "last_name": "Соколова",
+    "phone": "+79990000067",
+    "status": {
+      "name": "Золотой",
+      "discount_percent": 10,
+      "next": { "name": "Платиновый", "visits_required": 10, "visits_done": 7 }
+    }
+  },
+  "cards": [
+    { "id": "bonus", "title": "Бонусная карта", "balance": 2450, "unit": "points" },
+    { "id": "gift", "title": "Подарочный сертификат", "balance": 5000, "unit": "rub" },
+    { "id": "cashback", "title": "Кешбэк", "balance": 380, "unit": "rub" }
+  ],
+  "review_links": [
+    { "branch": "Филиал на Садовой", "url": "https://example.com/reviews/sadovaya" },
+    { "branch": "Филиал на Лесной", "url": "https://example.com/reviews/lesnaya" }
+  ]
+}
