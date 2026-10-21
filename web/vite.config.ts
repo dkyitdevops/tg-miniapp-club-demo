@@ -8,5 +8,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     restoreMocks: true,
+    // Vitest подменяет любой CSS пустой строкой, даже с ?raw, а тест стилей
+    // читает эти файлы как текст.
+    css: { include: [/\.css\?raw$/] },
   },
 })

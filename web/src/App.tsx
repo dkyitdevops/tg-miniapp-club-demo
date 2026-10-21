@@ -1,122 +1,71 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useLayoutEffect, useState } from 'react'
+import { Actions } from './components/Actions.tsx'
+import { BonusCards } from './components/BonusCards.tsx'
+import { BookingSheet } from './components/BookingSheet.tsx'
+import { StatusCard } from './components/StatusCard.tsx'
+import { loadProfile } from './data/profile.ts'
+import type { ProfileResponse } from './data/types.ts'
+import { greeting, maskPhone } from './format.ts'
+import type { ChatTopic, Platform } from './platform.ts'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App({ platform }: { platform: Platform }) {
+  const [hour] = useState(() => new Date().getHours())
+  const [profile, setProfile] = useState<ProfileResponse | null>(null)
+  const [failed, setFailed] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const shown = profile !== null || failed
+
+  useEffect(() => {
+    loadProfile().then(setProfile, () => setFailed(true))
+  }, [])
+
+  // Telegram советует звать ready() сразу, как только интерфейс на месте,
+  // поэтому вызов идёт в том же коммите, где экран попал в DOM.
+  useLayoutEffect(() => {
+    if (shown) platform.ready()
+  }, [shown, platform])
+
+  // Чат открываем прямо в обработчике касания, без анимации и await перед
+  // ним: Android молча пропускает openTelegramLink, если с касания прошло
+  // больше 10 секунд, и пускает один вызов на одно касание.
+  function openChat(topic: ChatTopic) {
+    platform.tap()
+    platform.openChat(topic)
+  }
+
+  function openSheet() {
+    platform.tap()
+    setSheetOpen(true)
+  }
+
+  if (failed) {
+    return (
+      <main className="cabinet">
+        <p className="notice">
+          Не получилось загрузить кабинет. Закройте и откройте его ещё раз.
+        </p>
+      </main>
+    )
+  }
+
+  if (!profile) return null
+
+  const name = platform.viewer?.firstName ?? profile.client.first_name
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      <main className="cabinet" inert={sheetOpen}>
+        <h1 className="greeting">{greeting(hour, name)}</h1>
+        <p className="phone">{maskPhone(profile.client.phone)}</p>
+        <StatusCard status={profile.client.status} />
+        <BonusCards cards={profile.cards} />
+        <Actions
+          onBook={() => openChat('book')}
+          onOnlineBooking={openSheet}
+          onCare={() => openChat('care')}
+        />
+      </main>
+      <BookingSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
     </>
   )
 }
-
-export default App
