@@ -33,7 +33,14 @@ function fakeWebApp({
       versionAtLeast(version, required),
     ),
     setBackgroundColor: vi.fn(),
-    setHeaderColor: vi.fn(),
+    // Как в живом telegram-web-app.js: до 6.9 шапка принимает только ключи
+    // цвета, а hex бросает исключение.
+    setHeaderColor: vi.fn((color: string) => {
+      const keys = ['bg_color', 'secondary_bg_color']
+      if (!versionAtLeast(version, '6.9') && !keys.includes(color)) {
+        throw new Error('WebAppHeaderColorKeyInvalid')
+      }
+    }),
     setBottomBarColor: vi.fn(),
     expand: vi.fn(),
     ready: vi.fn(),
@@ -69,6 +76,23 @@ test('на клиенте 6.2 не трогает шапку и нижнюю п�
   expect(webApp.setBackgroundColor).toHaveBeenCalledWith(BACKGROUND)
 })
 
+test.each([
+  ['setHeaderColor', '6.8', '6.9'],
+  ['setBottomBarColor', '7.9', '7.10'],
+] as const)(
+  '%s: на клиенте %s не вызывается, с версии %s вызывается',
+  (method, below, since) => {
+    const beforeThreshold = fakeWebApp({ version: below })
+    const onThreshold = fakeWebApp({ version: since })
+
+    createTelegramPlatform(fakeWindow(beforeThreshold), BACKGROUND)
+    createTelegramPlatform(fakeWindow(onThreshold), BACKGROUND)
+
+    expect(beforeThreshold[method]).not.toHaveBeenCalled()
+    expect(onThreshold[method]).toHaveBeenCalledWith(BACKGROUND)
+  },
+)
+
 test('на клиенте 6.0 пропускает фон и тактильный отклик, но разворачивает экран', () => {
   const webApp = fakeWebApp({ version: '6.0' })
 
@@ -80,7 +104,7 @@ test('на клиенте 6.0 пропускает фон и тактильны�
   expect(webApp.expand).toHaveBeenCalledTimes(1)
 })
 
-test('зритель: имя пользователя Telegram', () => {
+test('зритель — имя пользователя Telegram', () => {
   const webApp = fakeWebApp({ firstName: 'Константин' })
 
   const platform = createTelegramPlatform(fakeWindow(webApp), BACKGROUND)

@@ -47,7 +47,7 @@ export function createTelegramPlatform(
     return createBrowserPlatform(win)
   }
 
-  // Каждый вызов под проверкой версии: на клиентах до 6.9 setHeaderColor
+  // Цвета выставляем под проверкой версии: на клиентах до 6.9 setHeaderColor
   // с hex бросает WebAppHeaderColorKeyInvalid, и экран падает до отрисовки.
   if (webApp.isVersionAtLeast('6.1')) webApp.setBackgroundColor(background)
   if (webApp.isVersionAtLeast('6.9')) webApp.setHeaderColor(background)
