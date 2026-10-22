@@ -18,8 +18,8 @@ def test_topic_reply_quotes_prepared_text_and_ends_with_demo_note(topic):
     )
 
 
-def test_demo_note_is_exactly_as_agreed():
-    """Пометка о демо дословно такая, как согласована."""
+def test_demo_note_is_pinned_verbatim():
+    """Текст пометки о демо закреплён дословно."""
     assert DEMO_NOTE == (
         "Это демо. В рабочем кабинете это сообщение ушло бы менеджеру клуба "
         "вместе с телефоном и статусом клиента."

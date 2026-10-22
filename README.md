@@ -113,7 +113,9 @@ Telegram, а дальше кабинет работает только чере�
 - `bot/.env.example`: `BOT_TOKEN` и `WEBAPP_URL`. Настоящий `.env` в git не
   попадает.
 - `bot/Dockerfile` и `bot/docker-compose.yml`: образ на `python:3.12-slim`,
-  процесс под пользователем `nobody`, перезапуск `unless-stopped`.
+  процесс под пользователем `nobody`, контейнер только для чтения и без лишних
+  прав (`read_only`, `cap_drop: ALL`, `no-new-privileges`), перезапуск
+  `unless-stopped`, лог с ротацией: три файла по 10 МБ.
 
 CI (`.github/workflows/`):
 
