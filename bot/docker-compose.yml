@@ -1,0 +1,8 @@
+name: tg-miniapp-club-demo
+
+services:
+  bot:
+    build: .
+    env_file: .env
+    restart: unless-stopped
+    mem_limit: 128m
