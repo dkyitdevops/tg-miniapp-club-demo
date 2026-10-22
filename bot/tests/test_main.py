@@ -8,6 +8,7 @@ from aiogram.exceptions import TelegramNetworkError, TelegramRetryAfter
 from aiogram.methods import SetMyDescription
 
 from main import main
+from replies import open_app_menu_button
 
 
 @pytest.fixture(autouse=True)
@@ -16,6 +17,7 @@ def offline_main(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("WEBAPP_URL", "https://example.org/club/")
     monkeypatch.setattr(Bot, "set_my_description", AsyncMock())
     monkeypatch.setattr(Bot, "set_my_short_description", AsyncMock())
+    monkeypatch.setattr(Bot, "set_chat_menu_button", AsyncMock())
 
 
 @pytest.fixture
@@ -51,3 +53,15 @@ async def test_bot_is_created_with_html_parse_mode(start_polling):
 
     bot = start_polling.await_args.args[0]
     assert bot.default.parse_mode == ParseMode.HTML
+
+
+async def test_menu_button_opens_the_mini_app_in_every_chat(start_polling, monkeypatch):
+    """Кнопка меню ставится по умолчанию для всех личных чатов и открывает WEBAPP_URL."""
+    set_menu_button = AsyncMock()
+    monkeypatch.setattr(Bot, "set_chat_menu_button", set_menu_button)
+
+    await main()
+
+    set_menu_button.assert_awaited_once_with(
+        menu_button=open_app_menu_button("https://example.org/club/")
+    )

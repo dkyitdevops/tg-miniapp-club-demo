@@ -6,6 +6,7 @@ from replies import (
     SHORT_DESCRIPTION,
     TOPICS,
     open_app_keyboard,
+    open_app_menu_button,
     start_reply,
 )
 
@@ -38,6 +39,14 @@ def test_keyboard_opens_the_mini_app():
     [[button]] = keyboard.inline_keyboard
 
     assert button.text == "Открыть кабинет"
+    assert button.web_app.url == "https://example.org/club/"
+
+
+def test_menu_button_opens_the_mini_app():
+    """Кнопка меню слева от поля ввода открывает Mini App по адресу из настроек."""
+    button = open_app_menu_button("https://example.org/club/")
+
+    assert button.text == "Кабинет"
     assert button.web_app.url == "https://example.org/club/"
 
 
