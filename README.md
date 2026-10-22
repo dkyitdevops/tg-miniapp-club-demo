@@ -119,8 +119,9 @@ Telegram, а дальше кабинет работает только чере�
 
 CI (`.github/workflows/`):
 
-- `web.yml`: lint, тесты, сборка и `npm audit` для кабинета, а при пуше в
-  `master` ещё и выкладка собранного `web/dist` на GitHub Pages.
+- `web.yml`: lint, тесты, сборка и `npm audit` для кабинета, а в `master`
+  после пуша или ручного запуска ещё и выкладка собранного `web/dist` на
+  GitHub Pages.
 - `bot.yml`: ruff, pytest, bandit и pip-audit для демо-бота.
 
 ### Почему чат открывается через `/start`, а не через `?text=`
