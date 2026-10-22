@@ -2,9 +2,9 @@
 
 Это демонстрация, а не готовый продукт: данные клуба тестовые, кнопки
 «Записаться на процедуру» и «Связаться с отделом заботы» ведут в чат демо-бота,
-а не к менеджеру. Клуб красоты и клиентка вымышлены, ответ API заменён JSON в
-этом же репозитории, чтобы кабинет можно было открыть и проверить без боевых
-доступов.
+а не к менеджеру. Клуб красоты и клиентка вымышлены, ответ API заменён
+JSON-файлом в этом же репозитории, чтобы кабинет можно было открыть и проверить
+без боевых доступов.
 
 [![Web](https://github.com/dkyitdevops/tg-miniapp-club-demo/actions/workflows/web.yml/badge.svg)](https://github.com/dkyitdevops/tg-miniapp-club-demo/actions/workflows/web.yml)
 [![Bot](https://github.com/dkyitdevops/tg-miniapp-club-demo/actions/workflows/bot.yml/badge.svg)](https://github.com/dkyitdevops/tg-miniapp-club-demo/actions/workflows/bot.yml)
@@ -60,8 +60,7 @@ Telegram, а дальше кабинет работает только чере�
 - `web/src/main.tsx`: берёт цвет фона из токена `--color-bg`, создаёт адаптер
   через `createTelegramPlatform` и отдаёт его компоненту `App`.
 - `web/src/platform.ts`: интерфейс `Platform` (`viewer`, `ready`, `openChat`,
-  `tap`) и тип `ChatTopic` с метками `book` и `care`. Всё, что кабинет знает о
-  мессенджере.
+  `tap`) и тип `ChatTopic` с метками `book` и `care`.
 - `web/src/telegram.ts`: `createTelegramPlatform`, единственное место, где
   читается `window.Telegram`. Красит шапку, фон и нижнюю панель Telegram в цвет
   кабинета с проверкой версии клиента, разворачивает кабинет, берёт имя из
@@ -142,8 +141,8 @@ npm ci
 npm run dev
 ```
 
-Нужен Node 20.19 или новее. Кабинет откроется по адресу
-http://localhost:5173/tg-miniapp-club-demo/ (путь задаёт `base` в
+Нужен Node 20.19 или 22.12 и новее, так требует Vite. Кабинет откроется по
+адресу http://localhost:5173/tg-miniapp-club-demo/ (путь задаёт `base` в
 `web/vite.config.ts`, такой же путь у страницы на GitHub Pages) и будет работать
 так же, как в браузере из раздела «Открыть».
 
@@ -243,9 +242,9 @@ venv, поэтому там нет префикса `.venv/bin/`, а `bandit` з
 - чат с готовым текстом через метку `start` в ссылке: он работает и у того, кто
   демо-бота ещё не запускал, потому что «Запустить» отправляет демо-боту
   `/start book`;
-- всё, что кабинет знает о Telegram, лежит в одном адаптере
-  (`web/src/telegram.ts`) за интерфейсом `Platform`: компоненты про Telegram не
-  знают, и на этом шве рядом встаёт MAX;
+- вызовы Telegram собраны в одном адаптере (`web/src/telegram.ts`) за
+  интерфейсом `Platform`: `window.Telegram` читается только в нём, компоненты из
+  `web/src/components/` про Telegram не знают, и на этом шве рядом встаёт MAX;
 - данные из одного источника в форме ответа API: `loadProfile()` отдаёт
   `ProfileResponse`, сейчас из `profile.json`, а в боевом кабинете на его месте
   будет запрос;
