@@ -1,4 +1,5 @@
 import { expect, test, vi } from 'vitest'
+import { BOT_USERNAME } from './config.ts'
 import { createTelegramPlatform } from './telegram.ts'
 
 const BACKGROUND = '#1d1719'
@@ -122,7 +123,7 @@ test('кнопка обычной клавиатуры не передаёт д�
   expect(platform.viewer).toBeNull()
   expect(webApp.setHeaderColor).toHaveBeenCalledWith(BACKGROUND)
   expect(webApp.openTelegramLink).toHaveBeenCalledWith(
-    'https://t.me/aiglue_demo_bot?start=care',
+    `https://t.me/${BOT_USERNAME}?start=care`,
   )
   expect(win.open).not.toHaveBeenCalled()
 })
@@ -134,7 +135,7 @@ test('openChat открывает чат бота с темой в параме�
   createTelegramPlatform(win, BACKGROUND).openChat('book')
 
   expect(webApp.openTelegramLink).toHaveBeenCalledWith(
-    'https://t.me/aiglue_demo_bot?start=book',
+    `https://t.me/${BOT_USERNAME}?start=book`,
   )
   expect(win.open).not.toHaveBeenCalled()
 })
@@ -173,7 +174,7 @@ test('в браузере скрипт есть, но платформа unknown
   expect(webApp.openTelegramLink).not.toHaveBeenCalled()
   expect(webApp.HapticFeedback.impactOccurred).not.toHaveBeenCalled()
   expect(win.open).toHaveBeenCalledWith(
-    'https://t.me/aiglue_demo_bot?start=care',
+    `https://t.me/${BOT_USERNAME}?start=care`,
     '_blank',
     'noopener,noreferrer',
   )
@@ -189,7 +190,7 @@ test('без скрипта Telegram экран всё равно работае
   expect(() => platform.tap()).not.toThrow()
   platform.openChat('book')
   expect(win.open).toHaveBeenCalledWith(
-    'https://t.me/aiglue_demo_bot?start=book',
+    `https://t.me/${BOT_USERNAME}?start=book`,
     '_blank',
     'noopener,noreferrer',
   )
