@@ -10,4 +10,5 @@ export interface Platform {
   ready(): void
   openChat(topic: ChatTopic): void
   tap(): void
+  showBack(onBack: () => void): () => void
 }

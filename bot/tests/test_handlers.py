@@ -1,3 +1,5 @@
+from unittest.mock import call
+
 from conftest import feed
 
 from replies import fallback_reply, open_app_keyboard, start_reply
@@ -64,12 +66,13 @@ async def test_group_chat_is_ignored(dp, bot, answers):
     answers.assert_not_called()
 
 
-async def test_repeated_start_answers_again(dp, bot, answers):
-    """Повторное нажатие кнопки чата отвечается снова, а не молчанием."""
+async def test_repeated_start_answers_again(dp, bot, answers, settings):
+    """Повторное нажатие кнопки чата снова отвечается заготовленным текстом, а не молчанием."""
     await feed(dp, bot, text="/start book")
     await feed(dp, bot, text="/start book")
 
-    assert answers.await_count == 2
+    reply = call(start_reply("book"), reply_markup=open_app_keyboard(settings.webapp_url))
+    assert answers.await_args_list == [reply, reply]
 
 
 async def test_write_access_service_message_is_not_answered(dp, bot, answers):

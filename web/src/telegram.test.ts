@@ -47,11 +47,25 @@ function fakeWebApp({
     ready: vi.fn(),
     openTelegramLink: vi.fn(),
     HapticFeedback: { impactOccurred: vi.fn() },
+    BackButton: {
+      show: vi.fn(),
+      hide: vi.fn(),
+      onClick: vi.fn(),
+      offClick: vi.fn(),
+    },
   }
 }
 
-function fakeWindow(webApp: ReturnType<typeof fakeWebApp>): Window {
+type FakeWebApp = ReturnType<typeof fakeWebApp>
+
+function fakeWindow(webApp: FakeWebApp): Window {
   return { Telegram: { WebApp: webApp }, open: vi.fn() } as unknown as Window
+}
+
+function expectBackButtonUntouched(webApp: FakeWebApp) {
+  for (const method of Object.values(webApp.BackButton)) {
+    expect(method).not.toHaveBeenCalled()
+  }
 }
 
 test('в Telegram 8.0 красит шапку, фон и нижнюю панель в цвет экрана и разворачивает его', () => {
@@ -156,6 +170,45 @@ test('ready передаётся в Telegram', () => {
   expect(webApp.ready).toHaveBeenCalledTimes(1)
 })
 
+test('в Telegram 8.0 showBack показывает кнопку «Назад», нажатие зовёт onBack, а снятие прячет кнопку и убирает обработчик', () => {
+  const webApp = fakeWebApp({ version: '8.0' })
+  const platform = createTelegramPlatform(fakeWindow(webApp), BACKGROUND)
+  const onBack = vi.fn()
+
+  const hideBack = platform.showBack(onBack)
+
+  expect(webApp.BackButton.show).toHaveBeenCalledTimes(1)
+  expect(webApp.BackButton.onClick).toHaveBeenCalledTimes(1)
+  const [handler] = webApp.BackButton.onClick.mock.calls[0]
+  handler()
+  expect(onBack).toHaveBeenCalledTimes(1)
+  expect(webApp.BackButton.hide).not.toHaveBeenCalled()
+  expect(webApp.BackButton.offClick).not.toHaveBeenCalled()
+
+  hideBack()
+
+  expect(webApp.BackButton.offClick).toHaveBeenCalledExactlyOnceWith(handler)
+  expect(webApp.BackButton.hide).toHaveBeenCalledTimes(1)
+})
+
+test('на клиенте 6.0 showBack не трогает кнопку «Назад», а снятие безопасно', () => {
+  const webApp = fakeWebApp({ version: '6.0' })
+  const platform = createTelegramPlatform(fakeWindow(webApp), BACKGROUND)
+
+  const hideBack = platform.showBack(vi.fn())
+
+  expect(() => hideBack()).not.toThrow()
+  expectBackButtonUntouched(webApp)
+})
+
+test('кнопка «Назад» доступна с версии 6.1', () => {
+  const webApp = fakeWebApp({ version: '6.1' })
+
+  createTelegramPlatform(fakeWindow(webApp), BACKGROUND).showBack(vi.fn())
+
+  expect(webApp.BackButton.show).toHaveBeenCalledTimes(1)
+})
+
 test('в браузере скрипт есть, но платформа unknown: Telegram не трогаем, чат открываем в новой вкладке', () => {
   const webApp = fakeWebApp({ platform: 'unknown', version: '6.0' })
   const win = fakeWindow(webApp)
@@ -180,6 +233,18 @@ test('в браузере скрипт есть, но платформа unknown
   )
 })
 
+test('в браузере showBack не трогает кнопку «Назад» и не падает', () => {
+  // Версия 8.0, чтобы кнопку отключала именно платформа unknown, а не порог
+  // версии.
+  const webApp = fakeWebApp({ platform: 'unknown', version: '8.0' })
+  const platform = createTelegramPlatform(fakeWindow(webApp), BACKGROUND)
+
+  const hideBack = platform.showBack(vi.fn())
+
+  expect(() => hideBack()).not.toThrow()
+  expectBackButtonUntouched(webApp)
+})
+
 test('без скрипта Telegram экран всё равно работает', () => {
   const win = { open: vi.fn() } as unknown as Window
 
@@ -188,6 +253,8 @@ test('без скрипта Telegram экран всё равно работае
   expect(platform.viewer).toBeNull()
   expect(() => platform.ready()).not.toThrow()
   expect(() => platform.tap()).not.toThrow()
+  const hideBack = platform.showBack(vi.fn())
+  expect(() => hideBack()).not.toThrow()
   platform.openChat('book')
   expect(win.open).toHaveBeenCalledWith(
     `https://t.me/${BOT_USERNAME}?start=book`,

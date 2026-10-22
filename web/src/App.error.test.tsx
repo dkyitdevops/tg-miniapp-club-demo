@@ -12,6 +12,7 @@ test('если профиль не загрузился, говорит об э�
     ready: vi.fn(),
     openChat: vi.fn(),
     tap: vi.fn(),
+    showBack: vi.fn(() => vi.fn()),
   }
   render(<App platform={platform} />)
 

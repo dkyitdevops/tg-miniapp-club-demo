@@ -5,6 +5,7 @@ import os
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.exceptions import TelegramAPIError
 
 from config import load_settings
 from handlers import build_router
@@ -19,8 +20,13 @@ async def main() -> None:
     async with Bot(
         settings.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     ) as bot:
-        await bot.set_my_description(DESCRIPTION)
-        await bot.set_my_short_description(SHORT_DESCRIPTION)
+        # Бот работает и без описания, а упавший здесь процесс Docker
+        # перезапускал бы по кругу.
+        try:
+            await bot.set_my_description(DESCRIPTION)
+            await bot.set_my_short_description(SHORT_DESCRIPTION)
+        except TelegramAPIError as error:
+            logging.warning("Описание бота не выставлено: %s", error)
         await dp.start_polling(bot)
 
 

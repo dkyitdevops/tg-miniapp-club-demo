@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   getDefaultNormalizer,
   render,
@@ -8,7 +9,7 @@ import {
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import App from './App.tsx'
-import type { Viewer } from './platform.ts'
+import type { Platform, Viewer } from './platform.ts'
 
 // Обычный нормализатор Testing Library схлопывает пробелы и превращает
 // неразрывный пробел в обычный, а проверить нужно именно неразрывный.
@@ -17,7 +18,15 @@ const exact = {
 }
 
 function fakePlatform(viewer: Viewer | null = { firstName: 'Константин' }) {
-  return { viewer, ready: vi.fn(), openChat: vi.fn(), tap: vi.fn() }
+  const hideBack = vi.fn()
+  return {
+    viewer,
+    ready: vi.fn(),
+    openChat: vi.fn(),
+    tap: vi.fn(),
+    showBack: vi.fn<Platform['showBack']>(() => hideBack),
+    hideBack,
+  }
 }
 
 beforeEach(() => {
@@ -152,6 +161,45 @@ test('пока лист открыт, экран под ним недоступ�
   await user.click(within(sheet).getByRole('button', { name: 'Понятно' }))
 
   expect(screen.getByRole('main').hasAttribute('inert')).toBe(false)
+})
+
+test('пока лист открыт, показана кнопка «Назад» Telegram, и она закрывает лист как остальные способы', async () => {
+  const platform = fakePlatform()
+  const user = userEvent.setup()
+  render(<App platform={platform} />)
+  const opener = await screen.findByRole('button', { name: 'Онлайн-запись' })
+  expect(platform.showBack).not.toHaveBeenCalled()
+
+  await user.click(opener)
+
+  expect(platform.showBack).toHaveBeenCalledTimes(1)
+  expect(platform.hideBack).not.toHaveBeenCalled()
+  const [onBack] = platform.showBack.mock.calls[0]
+
+  act(() => onBack())
+
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(document.activeElement).toBe(opener)
+  expect(screen.getByRole('main').hasAttribute('inert')).toBe(false)
+  expect(platform.hideBack).toHaveBeenCalledTimes(1)
+  expect(platform.tap).toHaveBeenCalledTimes(1)
+})
+
+test('кнопка «Назад» прячется, когда лист закрыт кнопкой «Понятно», и возвращается при следующем открытии', async () => {
+  const platform = fakePlatform()
+  const user = userEvent.setup()
+  render(<App platform={platform} />)
+  const opener = await screen.findByRole('button', { name: 'Онлайн-запись' })
+  await user.click(opener)
+
+  await user.click(screen.getByRole('button', { name: 'Понятно' }))
+
+  expect(platform.hideBack).toHaveBeenCalledTimes(1)
+
+  await user.click(opener)
+
+  expect(platform.showBack).toHaveBeenCalledTimes(2)
+  expect(platform.hideBack).toHaveBeenCalledTimes(1)
 })
 
 test('сообщает Telegram о готовности один раз, когда экран показан', async () => {

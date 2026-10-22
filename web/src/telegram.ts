@@ -12,6 +12,12 @@ interface TelegramWebApp {
   ready(): void
   openTelegramLink(url: string): void
   HapticFeedback: { impactOccurred(style: 'light'): void }
+  BackButton: {
+    show(): void
+    hide(): void
+    onClick(callback: () => void): void
+    offClick(callback: () => void): void
+  }
 }
 
 declare global {
@@ -32,6 +38,9 @@ function createBrowserPlatform(win: Window): Platform {
       win.open(chatUrl(topic), '_blank', 'noopener,noreferrer')
     },
     tap() {},
+    showBack() {
+      return () => {}
+    },
   }
 }
 
@@ -66,6 +75,15 @@ export function createTelegramPlatform(
     tap() {
       if (webApp.isVersionAtLeast('6.1')) {
         webApp.HapticFeedback.impactOccurred('light')
+      }
+    },
+    showBack(onBack) {
+      if (!webApp.isVersionAtLeast('6.1')) return () => {}
+      webApp.BackButton.onClick(onBack)
+      webApp.BackButton.show()
+      return () => {
+        webApp.BackButton.offClick(onBack)
+        webApp.BackButton.hide()
       }
     },
   }

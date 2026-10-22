@@ -25,6 +25,13 @@ export default function App({ platform }: { platform: Platform }) {
     if (shown) platform.ready()
   }, [shown, platform])
 
+  // Пока лист открыт, показываем кнопку «Назад» Telegram: без неё системная
+  // «Назад» на Android закрыла бы весь кабинет, а не лист.
+  useEffect(() => {
+    if (!sheetOpen) return
+    return platform.showBack(() => setSheetOpen(false))
+  }, [sheetOpen, platform])
+
   // Чат открываем прямо в обработчике касания, без анимации и await перед
   // ним: Android молча пропускает openTelegramLink, если с касания прошло
   // больше 10 секунд, и пускает один вызов на одно касание.
