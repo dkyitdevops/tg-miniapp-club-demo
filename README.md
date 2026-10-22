@@ -31,7 +31,7 @@ TypeScript и Vite (`web/`), демо-бот на Python 3.12 и aiogram 3 (`bot
 
 ```mermaid
 flowchart TD
-    TG["Telegram:<br/>t.me/aiglue_demo_bot/club"] --> PG["страница на GitHub Pages"]
+    TG["Telegram:<br/>t.me/aiglue_demo_bot/club"] --> PG["страница<br/>GitHub Pages"]
     PG --> TS["telegram.ts<br/>createTelegramPlatform"]
     TS -->|"Platform"| APP["кабинет"]
     DATA["profile.json"] --> LP["loadProfile()"]
@@ -39,7 +39,7 @@ flowchart TD
     APP -->|"кнопка чата"| OTL["openTelegramLink:<br/>t.me/aiglue_demo_bot?start=book или care"]
     OTL --> CHAT["чат с демо-ботом"]
     CHAT -->|"/start book"| BOT["демо-бот"]
-    BOT --> OUT["готовый текст<br/>и пометка о демо"]
+    BOT --> OUT["готовый текст<br/>и пометка<br/>о демо"]
     APP -->|"Онлайн-запись"| SHEET["лист внутри кабинета"]
 ```
 
