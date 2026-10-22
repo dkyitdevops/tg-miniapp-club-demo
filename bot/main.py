@@ -9,7 +9,7 @@ from aiogram.exceptions import TelegramAPIError
 
 from config import load_settings
 from handlers import build_router
-from replies import DESCRIPTION, SHORT_DESCRIPTION
+from replies import DESCRIPTION, SHORT_DESCRIPTION, open_app_menu_button
 
 
 async def main() -> None:
@@ -20,13 +20,14 @@ async def main() -> None:
     async with Bot(
         settings.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     ) as bot:
-        # Бот работает и без описания, а упавший здесь процесс Docker
-        # перезапускал бы по кругу.
+        # Бот работает и без описания, и без кнопки меню, а упавший здесь процесс
+        # Docker перезапускал бы по кругу.
         try:
             await bot.set_my_description(DESCRIPTION)
             await bot.set_my_short_description(SHORT_DESCRIPTION)
+            await bot.set_chat_menu_button(menu_button=open_app_menu_button(settings.webapp_url))
         except TelegramAPIError as error:
-            logging.warning("Описание бота не выставлено: %s", error)
+            logging.warning("Описание или кнопка меню не выставлены: %s", error)
         await dp.start_polling(bot)
 
 

@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, MenuButtonWebApp, WebAppInfo
 
 TOPICS = {
     "book": "Здравствуйте! Хочу записаться на процедуру.",
@@ -41,3 +41,7 @@ def open_app_keyboard(webapp_url: str) -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="Открыть кабинет", web_app=WebAppInfo(url=webapp_url))]
         ]
     )
+
+
+def open_app_menu_button(webapp_url: str) -> MenuButtonWebApp:
+    return MenuButtonWebApp(text="Кабинет", web_app=WebAppInfo(url=webapp_url))
